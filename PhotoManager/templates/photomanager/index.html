@@ -1,0 +1,13 @@
+Welcome to photomanager
+{% if img_list %}
+<ul>
+    {% for img in img_list %}
+        <li>
+{#            <a href="/{{ img.id }}">{{ img.file_name }}</a>#}
+            <img src="/{{ img.id }}">
+        </li>
+    {% endfor %}
+</ul>
+{% else %}
+    <p> No image </p>
+{% endif %}
