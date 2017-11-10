@@ -1,10 +1,12 @@
 Welcome to photomanager
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'photomanager/style.css' %}"/>
 {% if img_list %}
 <ul>
     {% for img in img_list %}
         <li>
 {#            <a href="/{{ img.id }}">{{ img.file_name }}</a>#}
-            <img src="/{{ img.id }}">
+            <img src="{% url 'img' img.id %}">
         </li>
     {% endfor %}
 </ul>

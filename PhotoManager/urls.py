@@ -16,10 +16,11 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-from PhotoManager import views
+from . import views
 
+app_name = "photomanager"
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^$', views.index, name="index"),
-    url(r'^(?P<img_id>[0-9]+)/$', views.img, name="img")
+    url(r'^$', views.ResultsView.as_view(), name="index"),
+    url(r'^img/(?P<img_id>[0-9]+)/$', views.img, name="img")
 ]
