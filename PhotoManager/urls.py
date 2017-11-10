@@ -22,5 +22,6 @@ app_name = "photomanager"
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', views.ResultsView.as_view(), name="index"),
-    url(r'^img/(?P<img_id>[0-9]+)/$', views.img, name="img")
+    url(r'^img/(?P<img_id>[0-9]+)/$', views.img, name="img"),
+    url(r'^img/scan', views.scan, name="scan"),
 ]

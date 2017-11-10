@@ -1,6 +1,14 @@
 Welcome to photomanager
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'photomanager/style.css' %}"/>
+
+<form action="/img/scan" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Scan"/>
+</form>
+
+
 {% if img_list %}
 <ul>
     {% for img in img_list %}

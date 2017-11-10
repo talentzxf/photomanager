@@ -1,4 +1,8 @@
-li img {
+li img{
     width: 1024px;
     height: 768px;
+}
+
+img {
+    image-orientation: from-image;
 }

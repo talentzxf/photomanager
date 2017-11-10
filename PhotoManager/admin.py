@@ -2,13 +2,13 @@ from django.contrib import admin
 from django.contrib.admin import helpers
 from django.utils.encoding import force_text
 
-from .models import ImageFile
+from .models import ImageFile, Album
 
 
 class ImageFileAdmin(admin.ModelAdmin):
     fields = ['local_path', 'modified_time', 'md5', 'file_name']
-    readonly_fields = ['md5']
-    list_display = ('id', 'file_name', 'preview_image')
+    readonly_fields = ['local_path', 'modified_time', 'md5', 'file_name']
+    list_display = ['preview_image']
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
@@ -19,3 +19,4 @@ class ImageFileAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ImageFile, ImageFileAdmin)
+admin.site.register(Album)
