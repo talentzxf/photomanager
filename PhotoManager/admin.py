@@ -6,8 +6,8 @@ from .models import ImageFile, Album
 
 
 class ImageFileAdmin(admin.ModelAdmin):
-    fields = ['local_path', 'modified_time', 'md5', 'file_name']
-    readonly_fields = ['local_path', 'modified_time', 'md5', 'file_name']
+    fields = ['local_path', 'modified_time', 'md5', 'file_name','preview_image']
+    readonly_fields = ['local_path', 'modified_time', 'md5', 'file_name','preview_image']
     list_display = ['preview_image']
 
     def changelist_view(self, request, extra_context=None):
