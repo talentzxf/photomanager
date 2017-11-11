@@ -1,1 +1,2 @@
-pip3 install MySQL-Python
+pip3 install mysqlclient
+pip3 install Pillow
