@@ -5,7 +5,7 @@ from PhotoManager.models import Album
 
 class ScanForm(forms.Form):
     folder_path = forms.CharField(label="Please input server path here", max_length=100)
-    album = forms.ChoiceField(label="Choose an album", widget = forms.Select(), required= True)
+    album = forms.ChoiceField(label="Choose an album", widget=forms.Select(), required=True)
 
     def __init__(self):
         super(ScanForm, self).__init__()
@@ -13,3 +13,6 @@ class ScanForm(forms.Form):
         self.album_list = [(album.name, album.name) for album in self.albums]
         self.fields['album'].choices = self.album_list
 
+
+class FileUploadForm(forms.Form):
+    file_field = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))

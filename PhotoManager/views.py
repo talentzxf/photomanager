@@ -6,7 +6,7 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.views import generic
 
-from PhotoManager.Forms import ScanForm
+from PhotoManager.Forms import ScanForm, FileUploadForm
 from PhotoManager.models import ImageFile, Album
 
 
@@ -20,6 +20,7 @@ class ResultsView(generic.ListView):
     def get_context_data(self, **kwargs):
         context = super(ResultsView, self).get_context_data(**kwargs)
         context['form'] = ScanForm()
+        context['upload_form'] = FileUploadForm()
         return context
 
 
@@ -46,13 +47,33 @@ def scan(request):
             existing_objs = ImageFile.objects.filter(_md5=imgFile.md5)
             if not existing_objs:
                 imgFile.save()
-                total_uploaded = total_uploaded + 1
+                total_uploaded += 1
             else:
                 existing_obj = existing_objs[0]
                 existing_obj.modified_time = imgFile.modified_time
                 existing_obj.save()
-                total_modified = total_modified + 1
+                total_modified += 1
     return HttpResponse("Totally uploaded:%d files, totally modified:%d files" % (total_uploaded, total_modified))
+
+
+def upload(request):
+    print("Got image upload request")
+    if request.method == 'POST':
+        fileUploadForm = FileUploadForm(request.POST, request.FILES)
+        files = request.FILES.getlist('file_field')
+        print(files)
+        print("Totally:%d files" % len(files))
+        file_count = 0
+        for f in files:
+            print("Processing a file%s!" % f.name)
+            with open(f.name, 'wb+') as destination:
+                for chunk in f.chunks():
+                    print("Writing a chunk to file" + f.name)
+                    destination.write(chunk)
+            file_count += 1
+        return HttpResponse("Totally uploaded:%d files" % file_count)
+    else:
+        return HttpResponse(status=409, content="Not Allowed!")
 
 
 def img(request, img_id):

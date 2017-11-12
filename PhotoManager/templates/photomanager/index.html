@@ -8,6 +8,11 @@ Welcome to photomanager
     <input type="submit" value="Scan"/>
 </form>
 
+<form action="/img/upload" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ upload_form }}
+    <input type="submit" value="Upload"/>
+</form>
 
 {% if img_list %}
     {#<ul>#}
