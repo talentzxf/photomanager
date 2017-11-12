@@ -5,13 +5,11 @@ from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 import hashlib
 
-
 class Album(models.Model):
     name = models.CharField(max_length=50,primary_key=True)
 
     def __str__(self):
         return "%s" % self.name
-
 
 class ImageFile(models.Model):
     local_path = models.CharField(max_length=500)
@@ -19,6 +17,12 @@ class ImageFile(models.Model):
     modified_time = models.DateTimeField('Date Modified')
     file_name = models.CharField(max_length=200)
     album = models.ForeignKey(Album, on_delete=models.CASCADE)
+
+    # Create default album if not exist
+    default_album = Album.objects.filter(name='DEFAULT_ALBUM')
+    if not default_album:
+        default_album = Album('DEFAULT_ALBUM')
+        default_album.save()
 
     def __str__(self):
         return self.file_name
