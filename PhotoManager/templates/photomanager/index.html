@@ -1,16 +1,31 @@
 Welcome to photomanager
 {% load static %}
+<script lang="javascript">
+    updateList = function(){
+        var input = document.getElementsByName("file_field")[0]
+        var output = document.getElementById("fileList")
+        output.innerHTML = '<ul>';
+        for(var i = 0 ; i < input.files.length;i++){
+            output.innerHTML += '<li>' + input.files.item(i).name + '</li>'
+        }
+        output.innerHTML += '</ul>';
+    }
+</script>
+
 <link rel="stylesheet" type="text/css" href="{% static 'photomanager/style.css' %}"/>
 
 <form action="/img/scan" method="post">
     {% csrf_token %}
-    {{ form }}
+    {{ form }}<br/>
     <input type="submit" value="Scan"/>
 </form>
 
-<form action="/img/upload" method="post" enctype="multipart/form-data">
+<form action="/img/upload" method="post" enctype="multipart/form-data"
+    onchange="javascript:updateList()">
     {% csrf_token %}
     {{ upload_form }}
+    <br/>Selected files:
+    <div id="fileList"></div>
     <input type="submit" value="Upload"/>
 </form>
 

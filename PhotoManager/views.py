@@ -8,6 +8,7 @@ from django.views import generic
 
 from PhotoManager.Forms import ScanForm, FileUploadForm
 from PhotoManager.models import ImageFile, Album
+from PhotoManager.utilities import Utilities
 
 
 class ResultsView(generic.ListView):
@@ -26,51 +27,20 @@ class ResultsView(generic.ListView):
 
 def scan(request):
     if request.method != 'POST':
-        return HttpResponseNotAllowed("Bad request")
-    local_path = request.POST.get("folder_path")
-    if not os.path.isdir(local_path):
-        raise Http404("Folder not exist")
-
+        return HttpResponse(status=409, content="Not Allowed!")
     album = request.POST.get('album')
-    total_uploaded = 0
-    total_modified = 0
-    for root, dir, files in os.walk(local_path):
-        for file in files:
-            full_file_path = os.path.join(root, file)
-            imgFile = ImageFile()
-            imgFile.local_path = root
-            imgFile.file_name = file
-            imgFile.modified_time = timezone.now()
-            imgFile.album = Album.objects.get(name=album)
-            imgFile.md5
-
-            existing_objs = ImageFile.objects.filter(_md5=imgFile.md5)
-            if not existing_objs:
-                imgFile.save()
-                total_uploaded += 1
-            else:
-                existing_obj = existing_objs[0]
-                existing_obj.modified_time = imgFile.modified_time
-                existing_obj.save()
-                total_modified += 1
-    return HttpResponse("Totally uploaded:%d files, totally modified:%d files" % (total_uploaded, total_modified))
+    total_uploaded = Utilities.scan_data_folder(album)
+    return HttpResponse("Totally uploaded:%d files!" % total_uploaded)
 
 
 def upload(request):
-    print("Got image upload request")
     if request.method == 'POST':
         fileUploadForm = FileUploadForm(request.POST, request.FILES)
         files = request.FILES.getlist('file_field')
-        print(files)
-        print("Totally:%d files" % len(files))
         file_count = 0
         for f in files:
-            print("Processing a file%s!" % f.name)
-            with open(f.name, 'wb+') as destination:
-                for chunk in f.chunks():
-                    print("Writing a chunk to file" + f.name)
-                    destination.write(chunk)
-            file_count += 1
+            if Utilities.upload_file(f):
+                file_count += 1
         return HttpResponse("Totally uploaded:%d files" % file_count)
     else:
         return HttpResponse(status=409, content="Not Allowed!")

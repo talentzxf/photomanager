@@ -4,7 +4,6 @@ from PhotoManager.models import Album
 
 
 class ScanForm(forms.Form):
-    folder_path = forms.CharField(label="Please input server path here", max_length=100)
     album = forms.ChoiceField(label="Choose an album", widget=forms.Select(), required=True)
 
     def __init__(self):
