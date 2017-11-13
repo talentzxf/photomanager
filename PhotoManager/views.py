@@ -16,7 +16,7 @@ class ResultsView(generic.ListView):
     context_object_name = 'img_list'
 
     def get_queryset(self):
-        return ImageFile.objects.order_by('-modified_time')[:5]
+        return ImageFile.objects.order_by('-modified_time')
 
     def get_context_data(self, **kwargs):
         context = super(ResultsView, self).get_context_data(**kwargs)

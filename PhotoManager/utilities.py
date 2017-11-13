@@ -7,6 +7,7 @@ from django.utils import timezone
 from PhotoManager.models import ImageFile, Album
 from PhotoManager.settings import DATA_DIR
 import face_recognition
+import img_rotate
 
 
 class Utilities:
@@ -25,6 +26,12 @@ class Utilities:
         img_file.file_name = file_name
         img_file.modified_time = timezone.now()
         img_file.album = Album.objects.get(name=album)
+        try:
+            # Auto rotate the image file
+            image, degrees = img_rotate.fix_orientation(full_file_path, save_over=True)
+        except:
+            pass
+
         # Access the MD5 field to calculate the MD5 of this file
         img_file.md5
 
@@ -38,7 +45,7 @@ class Utilities:
     def get_face_infor(local_path, file_name):
         full_file_path = os.path.join(local_path, file_name)
         img_to_test = face_recognition.load_image_file(full_file_path)
-        face_locations = face_recognition.face_locations(img_to_test, model="cnn")
+        face_locations = face_recognition.face_locations(img_to_test)
 
         found_faces = len(face_locations)
         for face_location in face_locations:
