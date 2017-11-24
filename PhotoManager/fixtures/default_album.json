@@ -1,0 +1,9 @@
+[
+  {
+    "model":"PhotoManager.Album",
+    "pk":1,
+    "fields":{
+        "name" : "DEFAULT_ALBUM"
+    }
+  }
+]

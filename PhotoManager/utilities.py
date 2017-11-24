@@ -1,10 +1,10 @@
 import uuid
 
 import os
-from PIL import Image
+from PIL import Image, ExifTags
 from django.utils import timezone
 
-from PhotoManager.models import ImageFile, Album
+from PhotoManager.models import ImageFile, Album, ImageStatus, ImageMeta
 from PhotoManager.settings import DATA_DIR
 import face_recognition
 import img_rotate
@@ -12,6 +12,15 @@ import img_rotate
 
 class Utilities:
     _data_dir = DATA_DIR
+    img_extension_set = set(['jpg', 'bmp', 'jpeg', 'png'])
+
+    @staticmethod
+    def is_image_file_extension(file_extension):
+        file_extension = file_extension.lower()
+        if file_extension in Utilities.img_extension_set:
+            return True
+        return False
+
 
     @staticmethod
     def scan_image(local_path, file_name, album='DEFAULT_ALBUM'):
@@ -25,19 +34,31 @@ class Utilities:
         img_file.local_path = local_path
         img_file.file_name = file_name
         img_file.modified_time = timezone.now()
-        img_file.album = Album.objects.get(name=album)
-        try:
-            # Auto rotate the image file
-            image, degrees = img_rotate.fix_orientation(full_file_path, save_over=True)
-        except:
-            pass
+        img_file.album_id = Album.objects.get(name=album).id
+        img_file.status = "registered"
 
         # Access the MD5 field to calculate the MD5 of this file
         img_file.md5
 
         existing_objs = ImageFile.objects.filter(_md5=img_file.md5)
         if not existing_objs:
+            try:
+                # Auto rotate the image file
+                image, degrees = img_rotate.fix_orientation(full_file_path, save_over=True)
+            except:
+                pass
             img_file.save()
+
+            # Get meta data from image
+            with Image.open(full_file_path) as img:
+                if "_getexif" in dir(img) and img._getexif():
+                    exif = {
+                        ExifTags.TAGS[k]: v
+                        for k, v in img._getexif().items()
+                        if k in ExifTags.TAGS
+                    }
+                    img_meta = ImageMeta(img_file, exif, img.format)
+                    img_meta.save()
             return True
         return False
 
@@ -76,12 +97,15 @@ class Utilities:
         scanned_number = 0
         for root, dir, filenames in os.walk(os.path.join(Utilities._data_dir, "raw_images")):
             for filename in filenames:
+                if not Utilities.is_image_file_extension(filename.split(".")[-1]):
+                    continue
                 print("Registering file:{}".format(filename))
                 if Utilities.scan_image(root, filename, album):
-                    Utilities.get_face_infor(root, filename)
+                    # Utilities.get_face_infor(root, filename)
                     scanned_number += 1
                 print("Scanning file:{}".format(filename))
                 print("File:{} done".format(filename))
+        print("All Done!")
         return scanned_number
 
     @staticmethod
@@ -90,5 +114,5 @@ class Utilities:
             for chunk in file.chunks():
                 destination.write(chunk)
             Utilities.scan_image(Utilities._data_dir, file.name)
-            Utilities.get_face_infor(Utilities._data_dir, file.name)
+            # Utilities.get_face_infor(Utilities._data_dir, file.name)
         return True

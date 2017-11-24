@@ -1,3 +1,4 @@
+import logging
 import os
 
 from PIL import Image
@@ -10,18 +11,32 @@ from PhotoManager.Forms import ScanForm, FileUploadForm
 from PhotoManager.models import ImageFile, Album
 from PhotoManager.utilities import Utilities
 
+logger = logging.getLogger(__name__)
+
+
+class UploadView(generic.ListView):
+    template_name = "photomanager/upload.html"
+    context_object_name = 'img_list'
+
+    def get_queryset(self):
+        return ImageFile.objects.order_by('-modified_time')[:20]
+
+    def get_context_data(self, **kwargs):
+        context = super(UploadView, self).get_context_data(**kwargs)
+        context['form'] = ScanForm()
+        context['upload_form'] = FileUploadForm()
+        return context
+
 
 class ResultsView(generic.ListView):
     template_name = "photomanager/index.html"
     context_object_name = 'img_list'
 
     def get_queryset(self):
-        return ImageFile.objects.order_by('-modified_time')
+        return ImageFile.objects.order_by('-modified_time')[:20]
 
     def get_context_data(self, **kwargs):
         context = super(ResultsView, self).get_context_data(**kwargs)
-        context['form'] = ScanForm()
-        context['upload_form'] = FileUploadForm()
         return context
 
 
@@ -52,10 +67,30 @@ def img(request, img_id):
     except ImageFile.DoesNotExist:
         raise Http404("Image not found!")
 
+    width = request.GET.get('width') or None
+    height = request.GET.get('height') or None
+
+    width = width and int(width) or None
+    height = height and int(height) or None
+
     img_full_path = img_desc.local_path + "\\" + img_desc.file_name
     try:
-        with open(img_full_path, "rb") as f:
-            return HttpResponse(f.read(), content_type="image/jpeg")
+        raw_img = Image.open(img_full_path)
+        w, h = raw_img.size
+        if width and height:
+            max_size = (width, height)
+        elif width:
+            max_size = (width, h)
+        elif height:
+            max_size = (w, height)
+        else:
+            max_size = (w, h)
+
+        raw_img.thumbnail(max_size, Image.ANTIALIAS)
+
+        response = HttpResponse(content_type="image/jpeg")
+        raw_img.save(response, "jpeg")
+        return response
     except IOError:
         red = Image.new('RGBA', (1, 1), (255, 0, 0, 0))
         response = HttpResponse(content_type="image/jpeg")
