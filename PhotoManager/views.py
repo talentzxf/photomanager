@@ -77,12 +77,13 @@ def img(request, img_id):
     try:
         raw_img = Image.open(img_full_path)
         w, h = raw_img.size
+        aspect_ratio = w/h
         if width and height:
             max_size = (width, height)
         elif width:
-            max_size = (width, h)
+            max_size = (width, width/aspect_ratio)
         elif height:
-            max_size = (w, height)
+            max_size = (height*aspect_ratio, height)
         else:
             max_size = (w, h)
 
