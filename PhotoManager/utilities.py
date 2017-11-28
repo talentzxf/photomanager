@@ -42,11 +42,11 @@ class Utilities:
 
         existing_objs = ImageFile.objects.filter(_md5=img_file.md5)
         if not existing_objs:
-            try:
-                # Auto rotate the image file
-                image, degrees = img_rotate.fix_orientation(full_file_path, save_over=True)
-            except:
-                pass
+            # try:
+            #     # Auto rotate the image file
+            #     image, degrees = img_rotate.fix_orientation(full_file_path, save_over=True)
+            # except:
+            #     pass
             img_file.save()
 
             # Get meta data from image

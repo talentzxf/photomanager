@@ -25,5 +25,6 @@ urlpatterns = [
     url(r'^$', views.ResultsView.as_view(), name="index"),
     url(r'^img/(?P<img_id>[0-9]+)/$', views.img, name="img"),
     url(r'^img/scan', views.scan, name="scan"),
-    url(r'^img/upload', views.upload, name="scan"),
+    url(r'^img/upload', views.upload, name="upload"),
+    url(r'^img/dateinfo', views.dateInfo, name="dateinfo"),
 ]

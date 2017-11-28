@@ -1,7 +1,7 @@
 import logging
 import os
 
-from PIL import Image
+from PIL import Image, ExifTags
 from django.http import HttpResponse, Http404, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -33,7 +33,8 @@ class ResultsView(generic.ListView):
     context_object_name = 'img_list'
 
     def get_queryset(self):
-        return ImageFile.objects.order_by('-modified_time')[:20]
+        # return ImageFile.objects.order_by('-modified_time')[:20]
+        return ImageFile.objects.order_by('-modified_time')
 
     def get_context_data(self, **kwargs):
         context = super(ResultsView, self).get_context_data(**kwargs)
@@ -75,25 +76,63 @@ def img(request, img_id):
 
     img_full_path = img_desc.local_path + "\\" + img_desc.file_name
     try:
+        switchWidthAndHeight = False
         raw_img = Image.open(img_full_path)
-        w, h = raw_img.size
-        aspect_ratio = w/h
-        if width and height:
-            max_size = (width, height)
-        elif width:
-            max_size = (width, width/aspect_ratio)
-        elif height:
-            max_size = (height*aspect_ratio, height)
-        else:
-            max_size = (w, h)
+        try:
+            # Fix image orientation based on EXIF header
+            for orientation in ExifTags.TAGS.keys():
+                if ExifTags.TAGS[orientation] == 'Orientation':
+                    break
+            exif = dict(raw_img._getexif().items())
+            if exif[orientation] == 3:
+                raw_img = raw_img.rotate(180, expand=True)
+            if exif[orientation] == 6:
+                raw_img = raw_img.rotate(270, expand=True)
+                switchWidthAndHeight = True
+            if exif[orientation] == 8:
+                raw_img = raw_img.rotate(90, expand=True)
+                switchWidthAndHeight = True
+        except:
+            pass
 
-        raw_img.thumbnail(max_size, Image.ANTIALIAS)
+        # if not switchWidthAndHeight:
+        #     w, h = raw_img.size
+        # else:
+        #     h, w = raw_img.size
+
+        w, h = raw_img.size
+
+        aspect_ratio = w / h
+        width_compress = w/width
+        height_compress = h/height
+        compress_ratio = min(width_compress, height_compress)
+        thumbnail_width = w / compress_ratio
+        thumbnail_height = h / compress_ratio
+
+        thumbnail_size = (thumbnail_width, thumbnail_height)
+        raw_img.thumbnail(thumbnail_size, Image.ANTIALIAS)
+        # Crop center
+        left = (thumbnail_size[0] - width) / 2
+        top = (thumbnail_size[1] - height) / 2
+        right = (thumbnail_size[0] + width) / 2
+        bottom = (thumbnail_size[1] + height) / 2
+        raw_img = raw_img.crop((left, top, right, bottom))
 
         response = HttpResponse(content_type="image/jpeg")
+
+        raw_img = raw_img.convert("RGB")
         raw_img.save(response, "jpeg")
         return response
     except IOError:
-        red = Image.new('RGBA', (1, 1), (255, 0, 0, 0))
+        red = Image.new('RGB', (1, 1), (255, 0, 0, 0))
         response = HttpResponse(content_type="image/jpeg")
         red.save(response, "JPEG")
         return response
+
+def dateInfo(request):
+    if request.method == 'GET':
+        page_size = request.GET.get("pagesize")
+        page_number = request.GET.get("pagenumber")
+
+    else:
+        return HttpResponse(status=409, content="Not Allowed!")
