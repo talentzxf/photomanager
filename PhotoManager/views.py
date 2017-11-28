@@ -1,14 +1,15 @@
+import json
 import logging
-import os
 
 from PIL import Image, ExifTags
-from django.http import HttpResponse, Http404, HttpResponseNotAllowed
-from django.shortcuts import render, get_object_or_404
-from django.utils import timezone
+from django.db.models import Count
+from django.db.models.functions import TruncDate, datetime
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404
 from django.views import generic
 
 from PhotoManager.Forms import ScanForm, FileUploadForm
-from PhotoManager.models import ImageFile, Album
+from PhotoManager.models import ImageFile, ImageMeta
 from PhotoManager.utilities import Utilities
 
 logger = logging.getLogger(__name__)
@@ -103,8 +104,8 @@ def img(request, img_id):
         w, h = raw_img.size
 
         aspect_ratio = w / h
-        width_compress = w/width
-        height_compress = h/height
+        width_compress = w / width
+        height_compress = h / height
         compress_ratio = min(width_compress, height_compress)
         thumbnail_width = w / compress_ratio
         thumbnail_height = h / compress_ratio
@@ -129,10 +130,16 @@ def img(request, img_id):
         red.save(response, "JPEG")
         return response
 
+
+def date_handler(obj):
+    return obj.isoformat() if hasattr(obj, 'isoformat') else obj
+
+
 def dateInfo(request):
     if request.method == 'GET':
-        page_size = request.GET.get("pagesize")
-        page_number = request.GET.get("pagenumber")
-
+        imgMetaEntries = ImageMeta.objects.values(day=TruncDate('image_creation_time')).annotate(
+            image_count=Count('image_id')).all()
+        # return HttpResponse(serialize('json', imgMetaEntries))
+        return HttpResponse(json.dumps(list(imgMetaEntries), default=date_handler))
     else:
         return HttpResponse(status=409, content="Not Allowed!")

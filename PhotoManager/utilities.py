@@ -57,7 +57,8 @@ class Utilities:
                         for k, v in img._getexif().items()
                         if k in ExifTags.TAGS
                     }
-                    img_meta = ImageMeta(img_file, exif, img.format)
+                    img_meta = ImageMeta()
+                    img_meta.create(img_file, exif, img.format)
                     img_meta.save()
             return True
         return False

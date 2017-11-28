@@ -131,8 +131,7 @@ class ImageMeta(models.Model):
     image_height = models.IntegerField()
     img_format = models.CharField(max_length=5)
 
-    def __init__(self, image_file, exif, type):
-        super(ImageMeta, self).__init__()
+    def create(self, image_file, exif, type):
         self.image_id = image_file.id
         if 'DateTime' in exif:
             self.image_creation_time = datetime.strptime(exif['DateTime'], "%Y:%m:%d %H:%M:%S")

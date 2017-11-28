@@ -1,2 +1,3 @@
 pip3 install mysqlclient
 pip3 install Pillow
+# Need to setup TimeZone information in MySQL: http://www.geeksengine.com/article/populate-time-zone-data-for-mysql.html
